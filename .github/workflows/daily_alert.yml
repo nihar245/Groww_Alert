@@ -1,0 +1,40 @@
+name: Daily Portfolio Alert (9 PM IST)
+
+on:
+  # 15:30 UTC = 9:00 PM IST (UTC+5:30)
+  schedule:
+    - cron: '30 15 * * *'
+
+  # Allow manual triggering from the GitHub Actions UI for testing
+  workflow_dispatch:
+
+jobs:
+  send-alert:
+    name: Fetch NAVs & Send WhatsApp Alert
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Check out the repository ────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python ───────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      # ── 3. Install dependencies ────────────────────────────────────────────
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── 4. Run tracker ─────────────────────────────────────────────────────
+      - name: Run portfolio tracker
+        env:
+          # These are read from GitHub Repository Secrets.
+          # Go to: Settings → Secrets and variables → Actions → New repository secret
+          WHATSAPP_PHONE:     ${{ secrets.WHATSAPP_PHONE }}
+          WA_PHONE_NUMBER_ID: ${{ secrets.WA_PHONE_NUMBER_ID }}
+          WA_ACCESS_TOKEN:    ${{ secrets.WA_ACCESS_TOKEN }}
+        run: python tracker.py
